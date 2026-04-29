@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  universe: MyString
+  recommanded_position: MyString
+  shoot: 1
+  dunk: 1
+  speed: 1
+  defense: 1
+  intelligence: 1
+  strength: 1
+  base_cost: 1
+
+two:
+  name: MyString
+  universe: MyString
+  recommanded_position: MyString
+  shoot: 1
+  dunk: 1
+  speed: 1
+  defense: 1
+  intelligence: 1
+  strength: 1
+  base_cost: 1

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  draft_round: one
+  character: one
+  winner: one
+  winning_amount: 1
+  tie_broken_by_time: false
+
+two:
+  draft_round: two
+  character: two
+  winner: two
+  winning_amount: 1
+  tie_broken_by_time: false

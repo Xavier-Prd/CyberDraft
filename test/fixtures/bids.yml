@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  draft_round: one
+  user: one
+  character: one
+  amount: 1
+  submitted_at: 2026-04-29 20:37:15
+
+two:
+  draft_round: two
+  user: two
+  character: two
+  amount: 1
+  submitted_at: 2026-04-29 20:37:15

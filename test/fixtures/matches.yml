@@ -1,0 +1,33 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  duel: one
+  winner_id: 1
+  home_score: 1
+  away_score: 1
+  narrative: MyText
+  played_at: 2026-04-29 20:04:49
+  q1_home: 1
+  q2_home: 1
+  q3_home: 1
+  q4_home: 1
+  q1_away: 1
+  q2_away: 1
+  q3_away: 1
+  q4_away: 1
+
+two:
+  duel: two
+  winner_id: 1
+  home_score: 1
+  away_score: 1
+  narrative: MyText
+  played_at: 2026-04-29 20:04:49
+  q1_home: 1
+  q2_home: 1
+  q3_home: 1
+  q4_home: 1
+  q1_away: 1
+  q2_away: 1
+  q3_away: 1
+  q4_away: 1
