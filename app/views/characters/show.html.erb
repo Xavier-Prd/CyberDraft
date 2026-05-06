@@ -1,0 +1,131 @@
+<%# ---- Fil d'Ariane (breadcrumb) : Roster > Univers > Nom du perso ---- %>
+<div class="max-w-5xl mx-auto px-6 pt-6">
+  <div class="flex items-center gap-2 text-xs text-gray-500 mb-6">
+    <%= link_to "Roster", characters_path, class: "hover:text-white transition-colors" %>
+    <span>›</span>
+    <%= link_to @character.universe, characters_path(universe: @character.universe), class: "hover:text-white transition-colors" %>
+    <span>›</span>
+    <span class="text-white"><%= @character.name %></span>
+  </div>
+</div>
+
+<%# ---- Grille principale : colonne gauche (1/3) + colonne droite (2/3) ---- %>
+<div class="max-w-5xl mx-auto px-6 pb-8 grid grid-cols-3 gap-5">
+
+  <%# ============================ COLONNE GAUCHE ============================ %>
+  <div class="flex flex-col gap-4">
+
+    <%# Carte identité : avatar, nom, univers, poste recommandé %>
+    <div class="bg-[#161b22] rounded-lg border border-gray-800 p-6 flex flex-col items-center gap-3">
+
+      <%# Grand avatar rond avec les initiales du personnage %>
+      <div class="w-24 h-24 rounded-full border-2 border-yellow-400 flex items-center justify-center text-yellow-400 font-bold text-3xl">
+        <%= @character.name.gsub(/[^a-zA-Z0-9]/, "").first(2).upcase %>
+      </div>
+
+      <p class="text-white font-bold text-xl"><%= @character.name %></p>
+
+      <%# Badge univers %>
+      <span class="text-xs font-medium text-yellow-400 border border-yellow-400 rounded-full px-3 py-1">
+        <%= @character.universe %>
+      </span>
+
+      <%# Poste recommandé %>
+      <span class="text-xs text-gray-400">Poste : <span class="text-white font-semibold"><%= @character.recommanded_position %></span></span>
+    </div>
+
+    <%# Personnages du même univers (synergies potentielles) %>
+    <div class="bg-[#161b22] rounded-lg border border-gray-800 p-4">
+      <p class="text-xs text-gray-500 uppercase tracking-widest mb-3">Fonctionne bien avec</p>
+
+      <% @same_universe.each do |teammate| %>
+        <%# Chaque ligne est un lien vers la fiche de ce personnage %>
+        <%= link_to character_path(teammate), class: "flex items-center gap-3 py-2 hover:opacity-75 transition-opacity" do %>
+
+          <%# Mini avatar %>
+          <div class="w-9 h-9 rounded bg-[#0d1117] border border-gray-700 flex items-center justify-center text-yellow-400 font-bold text-xs flex-shrink-0">
+            <%= teammate.name.gsub(/[^a-zA-Z0-9]/, "").first(2).upcase %>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <p class="text-white text-sm font-medium truncate"><%= teammate.name %></p>
+            <p class="text-gray-500 text-xs truncate"><%= teammate.universe %></p>
+          </div>
+
+          <%# Taux d'utilisation de ce coéquipier %>
+          <span class="text-yellow-400 font-bold text-sm"><%= @teammates_usage[teammate.id] || 0 %>%</span>
+
+        <% end %>
+      <% end %>
+
+      <%# Message si le personnage n'a pas de coéquipier dans son univers %>
+      <% if @same_universe.empty? %>
+        <p class="text-gray-600 text-xs italic">Aucun autre personnage de cet univers.</p>
+      <% end %>
+    </div>
+
+  </div>
+
+  <%# ============================ COLONNE DROITE ============================ %>
+  <div class="col-span-2 flex flex-col gap-4">
+
+    <%# Bloc stats avec barres de progression %>
+    <div class="bg-[#161b22] rounded-lg border border-gray-800 p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-widest mb-4">Stats</p>
+
+      <%# On affiche les 6 stats avec leur label, leur barre jaune et leur valeur %>
+      <% [
+        ["Attaque",      @character.strength],
+        ["Vitesse",      @character.speed],
+        ["Tir",          @character.shoot],
+        ["Dunk",         @character.dunk],
+        ["Intelligence", @character.intelligence],
+        ["Défense",      @character.defense]
+      ].each do |label, value| %>
+        <div class="flex items-center gap-4 mb-3">
+          <%# Label de la stat %>
+          <span class="text-gray-400 text-sm w-28 flex-shrink-0"><%= label %></span>
+          <%# Barre de progression : largeur = valeur / 100 %>
+          <div class="flex-1 h-1 bg-gray-700 rounded">
+            <div class="h-1 bg-yellow-400 rounded" style="width: <%= value %>%"></div>
+          </div>
+          <%# Valeur numérique à droite %>
+          <span class="text-white font-bold text-sm w-8 text-right"><%= value %></span>
+        </div>
+      <% end %>
+
+      <%# Total de toutes les stats %>
+      <div class="border-t border-gray-700 mt-4 pt-3 flex justify-between">
+        <span class="text-gray-400 text-sm">Total des stats</span>
+        <span class="text-white font-bold"><%= @total_stats %></span>
+      </div>
+    </div>
+
+    <%# Trois métriques clés en bas de page %>
+    <div class="grid grid-cols-3 gap-4">
+
+      <%# Coût de base en draft %>
+      <div class="bg-[#161b22] rounded-lg border border-gray-800 p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Coût de base</p>
+        <p class="text-white text-2xl font-bold"><%= @character.base_cost %></p>
+        <p class="text-gray-500 text-xs mt-1">calculé sur les stats</p>
+      </div>
+
+      <%# % de duels où ce personnage a été drafté %>
+      <div class="bg-[#161b22] rounded-lg border border-gray-800 p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Utilisation</p>
+        <p class="text-white text-2xl font-bold"><%= @usage %>%</p>
+        <p class="text-gray-500 text-xs mt-1">des duels</p>
+      </div>
+
+      <%# % de matchs gagnés quand ce personnage était dans l'équipe %>
+      <div class="bg-[#161b22] rounded-lg border border-gray-800 p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-widest mb-2">Victoires</p>
+        <p class="text-white text-2xl font-bold"><%= @win_rate %>%</p>
+        <p class="text-gray-500 text-xs mt-1">avec ce perso</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>

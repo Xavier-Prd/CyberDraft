@@ -1,0 +1,102 @@
+<div class="max-w-5xl mx-auto px-6 py-8">
+
+  <%# ---- En-tête de la page ---- %>
+  <div class="mb-6">
+    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Roster</p>
+    <p class="text-gray-400 text-sm">
+      <%= @total_count %> personnages · <%= @universes.size %> univers
+    </p>
+  </div>
+
+  <%# ---- Filtres par univers ---- %>
+  <%# Chaque pill est un lien qui recharge la page avec ?universe=X %>
+  <div class="flex items-center gap-2 mb-4 flex-wrap">
+    <span class="text-xs text-gray-500 uppercase tracking-widest mr-2">Univers</span>
+
+    <%# Pill "Tous" : actif quand aucun filtre univers n'est sélectionné %>
+    <%= link_to "Tous", characters_path(sort: params[:sort]),
+        class: "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors
+                #{params[:universe].blank? ? 'bg-white text-black border-white' : 'text-white border-gray-600 hover:border-white'}" %>
+
+    <%# Une pill par univers %>
+    <% @universes.each do |universe| %>
+      <%= link_to universe, characters_path(universe: universe, sort: params[:sort]),
+          class: "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors
+                  #{params[:universe] == universe ? 'bg-white text-black border-white' : 'text-white border-gray-600 hover:border-white'}" %>
+    <% end %>
+  </div>
+
+  <%# ---- Boutons de tri ---- %>
+  <div class="flex gap-3 justify-center mb-8">
+    <%= link_to "Trier par coût", characters_path(sort: "cost", universe: params[:universe]),
+        class: "px-5 py-2 rounded-full text-sm font-medium border transition-colors
+                #{params[:sort] == 'cost' ? 'bg-yellow-400 text-black border-yellow-400' : 'text-white border-gray-600 hover:border-white'}" %>
+
+    <%= link_to "Trier par utilisation", characters_path(sort: "usage", universe: params[:universe]),
+        class: "px-5 py-2 rounded-full text-sm font-medium border transition-colors
+                #{params[:sort] == 'usage' ? 'bg-yellow-400 text-black border-yellow-400' : 'text-white border-gray-600 hover:border-white'}" %>
+  </div>
+
+  <%# ---- Liste des personnages ---- %>
+  <div class="rounded-lg overflow-hidden border border-gray-800">
+    <% @characters.each_with_index do |character, index| %>
+
+      <%# Chaque ligne est un lien cliquable vers la page de détail du personnage %>
+      <%= link_to character_path(character),
+          class: "flex items-center gap-5 px-5 py-4 bg-[#161b22] hover:bg-[#1c2128] transition-colors
+                  #{index < @characters.size - 1 ? 'border-b border-gray-800' : ''}" do %>
+
+        <%# Avatar : 2 premières lettres du nom, en jaune sur fond sombre %>
+        <div class="w-12 h-12 rounded bg-[#0d1117] border border-gray-700 flex items-center justify-center text-yellow-400 font-bold text-sm flex-shrink-0">
+          <%= character.name.gsub(/[^a-zA-Z0-9]/, "").first(2).upcase %>
+        </div>
+
+        <%# Nom, univers et badge d'utilisation %>
+        <div class="w-44 flex-shrink-0">
+          <p class="font-semibold text-white text-sm"><%= character.name %></p>
+          <p class="text-gray-500 text-xs mb-1"><%= character.universe %></p>
+
+          <%# Badge selon le taux d'utilisation du personnage en draft %>
+          <% usage = @usage[character.id] || 0 %>
+          <% if usage >= 50 %>
+            <span class="text-xs font-bold text-black bg-yellow-400 px-2 py-0.5 rounded">TRÈS DRAFTÉ</span>
+          <% elsif usage >= 20 %>
+            <span class="text-xs font-bold text-black bg-green-400 px-2 py-0.5 rounded">POPULAIRE</span>
+          <% end %>
+        </div>
+
+        <%# Stats principales : 4 stats affichées avec leur barre de progression %>
+        <%# On affiche : Force (ATK), Vitesse (VIT), Intelligence (INT), Défense (DEF) %>
+        <div class="flex gap-5 flex-1">
+          <% [["ATK", character.strength], ["VIT", character.speed], ["INT", character.intelligence], ["DEF", character.defense]].each do |label, value| %>
+            <div class="flex flex-col items-center w-12">
+              <span class="text-gray-500 text-xs mb-0.5"><%= label %></span>
+              <span class="text-white font-bold text-sm"><%= value %></span>
+              <%# Barre jaune dont la largeur représente la valeur (0 à 100) %>
+              <div class="w-full h-0.5 bg-gray-700 rounded mt-1">
+                <div class="h-0.5 bg-yellow-400 rounded" style="width: <%= value %>%"></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Pourcentage d'utilisation en draft %>
+        <div class="text-right w-24 flex-shrink-0">
+          <p class="text-white font-bold text-lg"><%= usage %>%</p>
+          <p class="text-gray-500 text-xs uppercase tracking-wide">utilisation</p>
+        </div>
+
+        <%# Coût de base en draft %>
+        <div class="text-right w-24 flex-shrink-0">
+          <p class="text-white font-semibold"><%= character.base_cost %></p>
+          <p class="text-gray-500 text-xs uppercase tracking-wide">coût de base</p>
+        </div>
+
+        <%# Flèche indiquant que la ligne est cliquable %>
+        <span class="text-gray-500">›</span>
+
+      <% end %>
+    <% end %>
+  </div>
+
+</div>

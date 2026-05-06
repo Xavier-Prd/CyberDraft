@@ -23,7 +23,7 @@ Rails.application.routes.draw do
   resources :bids, only: [ :update ]
 
   # Personnages
-  resources :characters, only: [ :index ]
+  resources :characters, only: [ :index, :show ]
 
   # Matchs
   resources :matches, only: [ :index, :show ]

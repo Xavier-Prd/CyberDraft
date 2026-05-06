@@ -80,3 +80,5 @@ Landing, Login/Signup, Home, Roster, Character Detail, Draft, Draft Round Result
 - Modèles en anglais, snake_case
 - Ne pas toucher au design system sans validation explicite
 - Penser les features côté métier avant de coder
+- Code toujours avec une syntaxe simple qu'un développeur junior comprendrai
+- Explique tout ce que tu fais en commentant
