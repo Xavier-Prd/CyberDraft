@@ -8,6 +8,22 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  # Validation du username : obligatoire, unique, 2-20 caractères, lettres/chiffres/tirets bas uniquement
+  validates :username, presence: true,
+                       uniqueness: { case_sensitive: false },
+                       length: { minimum: 2, maximum: 20 },
+                       format: { with: /\A[a-zA-Z0-9_]+\z/, message: "lettres, chiffres et _ uniquement" }
+
+  # Nom affiché dans les vues (à utiliser partout à la place de email.split('@').first)
+  def display_name
+    username.presence || email.split("@").first
+  end
+
+  # Initiales pour les avatars (2 premiers caractères)
+  def initials
+    display_name.first(2).upcase
+  end
+
   # Amitiés envoyées par ce user (il est le sender)
   # foreign_key: "sender_id" car la colonne ne s'appelle pas user_id
   # dependent: :destroy → si le user est supprimé, ses demandes envoyées le sont aussi

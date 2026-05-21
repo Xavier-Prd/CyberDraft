@@ -203,6 +203,7 @@ users = []
 6.times do
   users << User.create!(
     email: Faker::Internet.unique.email,
+    username: Faker::Internet.unique.username(specifier: 4..12, separators: ["_"]),
     password: "password"
   )
 end

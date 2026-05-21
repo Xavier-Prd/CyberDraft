@@ -31,5 +31,11 @@ Rails.application.routes.draw do
   # Classement
   get "leaderboard", to: "leaderboard#index"
 
+  # Roster personnel du joueur
+  get "roster", to: "roster#index", as: :roster
+
+  # Profil utilisateur
+  get "profile", to: "profiles#show", as: :profile
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

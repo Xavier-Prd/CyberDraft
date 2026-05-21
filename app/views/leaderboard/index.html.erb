@@ -1,0 +1,118 @@
+<%# ============================================================ %>
+<%# PAGE CLASSEMENT — Tableau des joueurs triés par victoires %>
+<%# ============================================================ %>
+
+<div class="px-8 py-6 max-w-5xl">
+
+  <%# En-tête %>
+  <div class="mb-6">
+    <p class="text-xs text-gray-600 uppercase tracking-widest mb-1">
+      <%= @standings.count %> joueurs · classement général
+    </p>
+    <h1 class="text-2xl font-bold text-white tracking-widest uppercase">Classement</h1>
+  </div>
+
+  <%# Tableau du classement %>
+  <div class="bg-[#111627] border border-[#1c2128] rounded overflow-hidden">
+
+    <%# En-têtes des colonnes %>
+    <div class="grid grid-cols-12 px-5 py-3 border-b border-[#1c2128] text-xs text-gray-600 uppercase tracking-widest">
+      <span class="col-span-1">#</span>
+      <span class="col-span-4">Joueur</span>
+      <span class="col-span-1 text-center">V</span>
+      <span class="col-span-1 text-center">D</span>
+      <span class="col-span-1 text-center">Pts</span>
+      <span class="col-span-2 text-center">Diff</span>
+      <span class="col-span-2 text-right">Forme 5 der.</span>
+    </div>
+
+    <% @standings.each_with_index do |entry, index| %>
+      <% rank = index + 1 %>
+      <% is_me = entry[:user] == current_user %>
+
+      <%# Séparateur "ligne playoffs" entre le 6e et le 7e joueur %>
+      <% if index == 6 && @standings.count > 6 %>
+        <div class="px-5 py-1.5 bg-[#0b0e1a] border-t border-b border-[#1c2128] flex items-center gap-3">
+          <div class="flex-1 h-px bg-gray-800"></div>
+          <span class="text-xs text-gray-600 uppercase tracking-widest">↑ playoffs top 6</span>
+          <div class="flex-1 h-px bg-gray-800"></div>
+        </div>
+      <% end %>
+
+      <%# Ligne joueur — fond teinté jaune si c'est le joueur connecté %>
+      <div class="grid grid-cols-12 px-5 py-3.5 items-center border-b border-[#1c2128] last:border-0
+                  <%= is_me ? 'bg-[#f5d800]/5 border-l-2 border-l-[#f5d800]' : 'hover:bg-[#0b0e1a] transition-colors' %>">
+
+        <%# Numéro de rang (doré pour le top 3) %>
+        <div class="col-span-1">
+          <span class="text-sm <%= rank <= 3 ? 'text-[#f5d800] font-bold' : 'text-gray-500' %>">
+            <%= "%02d" % rank %>
+          </span>
+        </div>
+
+        <%# Avatar + nom %>
+        <div class="col-span-4 flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-[#0b0e1a] border flex items-center justify-center font-bold text-xs flex-shrink-0
+                      <%= is_me ? 'border-[#f5d800] text-[#f5d800]' : 'border-gray-700 text-gray-500' %>">
+            <%= entry[:user].initials %>
+          </div>
+          <div>
+            <p class="text-sm font-bold <%= is_me ? 'text-[#f5d800]' : 'text-white' %>">
+              <%= entry[:user].display_name.upcase %>
+              <% if is_me %>
+                <span class="text-xs text-gray-600 font-normal ml-1">TOI</span>
+              <% end %>
+            </p>
+            <p class="text-gray-600 text-xs"><%= entry[:total] %> matchs</p>
+          </div>
+        </div>
+
+        <%# Victoires %>
+        <div class="col-span-1 text-center">
+          <span class="text-green-400 font-bold text-sm"><%= entry[:wins] %></span>
+        </div>
+
+        <%# Défaites %>
+        <div class="col-span-1 text-center">
+          <span class="text-red-400 font-bold text-sm"><%= entry[:losses] %></span>
+        </div>
+
+        <%# Points (2 pts par victoire) %>
+        <div class="col-span-1 text-center">
+          <span class="text-white font-bold text-sm"><%= entry[:points] %></span>
+        </div>
+
+        <%# Différentiel de score %>
+        <div class="col-span-2 text-center">
+          <span class="text-sm <%= entry[:diff] >= 0 ? 'text-green-400' : 'text-red-400' %>">
+            <%= entry[:diff] >= 0 ? "+#{entry[:diff]}" : entry[:diff].to_s %>
+          </span>
+        </div>
+
+        <%# Forme sur 5 matchs : V (vert) ou D (rouge) %>
+        <div class="col-span-2 flex justify-end gap-1">
+          <% if entry[:form].empty? %>
+            <span class="text-gray-700 text-xs">—</span>
+          <% else %>
+            <% entry[:form].each do |result| %>
+              <span class="w-5 h-5 rounded text-xs font-bold flex items-center justify-center
+                           <%= result == 'V' ? 'bg-green-400/20 text-green-400' : 'bg-red-400/20 text-red-400' %>">
+                <%= result %>
+              </span>
+            <% end %>
+          <% end %>
+        </div>
+
+      </div>
+    <% end %>
+
+    <%# État vide %>
+    <% if @standings.empty? %>
+      <div class="px-5 py-12 text-center">
+        <p class="text-gray-600 text-sm italic">Aucun résultat pour l'instant.</p>
+      </div>
+    <% end %>
+
+  </div>
+
+</div>

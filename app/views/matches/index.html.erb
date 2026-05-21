@@ -1,0 +1,117 @@
+<%# ============================================================ %>
+<%# PAGE CALENDRIER — Matchs groupés par date %>
+<%# ============================================================ %>
+
+<div class="px-8 py-6 max-w-5xl">
+
+  <%# En-tête %>
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <p class="text-xs text-gray-600 uppercase tracking-widest mb-1">
+        <%= @matches_by_date.values.flatten.count %> match<%= @matches_by_date.values.flatten.count > 1 ? "s" : "" %> au calendrier
+      </p>
+      <h1 class="text-2xl font-bold text-white tracking-widest uppercase">Calendrier</h1>
+    </div>
+  </div>
+
+  <%# Liste des matchs groupés par date, du plus récent au plus ancien %>
+  <% if @matches_by_date.empty? %>
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-12 text-center">
+      <p class="text-gray-600 text-sm italic">Aucun match au calendrier pour l'instant.</p>
+      <%= link_to "Lancer un duel →", duels_path, class: "inline-block mt-4 text-xs text-[#f5d800] hover:opacity-75" %>
+    </div>
+  <% else %>
+    <% @matches_by_date.each do |date, matches| %>
+
+      <%# Bloc par journée %>
+      <div class="mb-5">
+
+        <%# En-tête de la journée : jour + nombre de matchs %>
+        <div class="flex items-center gap-3 mb-3">
+          <p class="text-xs text-gray-500 uppercase tracking-widest">
+            <%# Format français de la date %>
+            <%= date.strftime("%A %d %B").capitalize %>
+          </p>
+          <div class="flex-1 h-px bg-[#1c2128]"></div>
+          <span class="text-xs text-gray-600"><%= matches.count %> match<%= matches.count > 1 ? "s" : "" %></span>
+        </div>
+
+        <%# Liste des matchs de cette journée %>
+        <div class="bg-[#111627] border border-[#1c2128] rounded overflow-hidden">
+          <% matches.each_with_index do |match, i| %>
+            <% involves_me = match.duel.home_user == current_user || match.duel.away_user == current_user %>
+            <% is_played = match.winner_id.present? %>
+            <% i_won = match.winner == current_user %>
+            <% home = match.duel.home_user %>
+            <% away = match.duel.away_user %>
+
+            <%= link_to match_path(match),
+                class: "flex items-center gap-4 px-5 py-4 border-b border-[#1c2128] last:border-0 transition-colors
+                        #{involves_me ? 'hover:bg-[#0b0e1a]' : 'hover:bg-[#0b0e1a] opacity-75 hover:opacity-100'}" do %>
+
+              <%# Indicateur gauche : LIVE, joué, ou heure %>
+              <div class="w-20 flex-shrink-0 text-right">
+                <% if !is_played %>
+                  <span class="text-xs font-bold text-pink-400 uppercase">● LIVE</span>
+                <% else %>
+                  <span class="text-xs text-gray-600">
+                    <%= match.played_at&.strftime("%H:%M") || "—" %>
+                  </span>
+                <% end %>
+              </div>
+
+              <%# Équipe domicile %>
+              <div class="flex items-center gap-2 flex-1 justify-end">
+                <p class="text-sm font-bold <%= home == current_user ? 'text-[#f5d800]' : 'text-white' %> text-right">
+                  <%= home.display_name.upcase %>
+                </p>
+                <div class="w-7 h-7 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-xs font-bold flex-shrink-0
+                            <%= home == current_user ? 'border-[#f5d800] text-[#f5d800]' : 'text-gray-500' %>">
+                  <%= home.initials %>
+                </div>
+              </div>
+
+              <%# Score ou VS %>
+              <div class="w-24 flex-shrink-0 text-center">
+                <% if is_played %>
+                  <span class="font-bold text-lg text-white">
+                    <%= match.home_score %> — <%= match.away_score %>
+                  </span>
+                <% else %>
+                  <span class="text-gray-600 font-bold text-sm">VS</span>
+                <% end %>
+              </div>
+
+              <%# Équipe extérieure %>
+              <div class="flex items-center gap-2 flex-1">
+                <div class="w-7 h-7 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-xs font-bold flex-shrink-0
+                            <%= away == current_user ? 'border-[#f5d800] text-[#f5d800]' : 'text-gray-500' %>">
+                  <%= away.initials %>
+                </div>
+                <p class="text-sm font-bold <%= away == current_user ? 'text-[#f5d800]' : 'text-white' %>">
+                  <%= away.display_name.upcase %>
+                </p>
+              </div>
+
+              <%# Résultat ou statut à droite %>
+              <div class="w-28 flex-shrink-0 text-right">
+                <% if is_played && involves_me %>
+                  <span class="text-xs font-bold <%= i_won ? 'text-green-400' : 'text-red-400' %>">
+                    <%= i_won ? "VICTOIRE" : "DÉFAITE" %>
+                  </span>
+                <% elsif is_played %>
+                  <span class="text-xs text-gray-600">Terminé</span>
+                <% else %>
+                  <span class="text-xs text-gray-500">En cours</span>
+                <% end %>
+              </div>
+
+            <% end %>
+          <% end %>
+        </div>
+
+      </div>
+    <% end %>
+  <% end %>
+
+</div>

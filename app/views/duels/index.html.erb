@@ -1,0 +1,241 @@
+<%# ============================================================ %>
+<%# PAGE DRAFT (INDEX) — Tous les duels du joueur connecté %>
+<%# ============================================================ %>
+
+<div class="px-8 py-6 max-w-5xl">
+
+  <%# En-tête + bouton nouveau défi %>
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <p class="text-xs text-gray-600 uppercase tracking-widest mb-1">Tes duels</p>
+      <h1 class="text-2xl font-bold text-white tracking-widest uppercase">Draft</h1>
+    </div>
+
+    <%# Bouton pour ouvrir/fermer le formulaire de défi %>
+    <button
+      onclick="document.getElementById('new-duel-form').classList.toggle('hidden')"
+      class="bg-[#f5d800] text-black font-bold px-5 py-2.5 rounded text-sm uppercase tracking-wide hover:bg-yellow-300 transition-colors">
+      + Nouveau défi
+    </button>
+  </div>
+
+  <%# ======================================================== %>
+  <%# FORMULAIRE NOUVEAU DÉFI (masqué par défaut) %>
+  <%# ======================================================== %>
+
+  <%# On enveloppe la page dans une div avec la classe page-wrapper pour le JS inline %>
+  <div class="page-wrapper">
+    <div id="new-duel-form" class="hidden mb-6 bg-[#111627] border border-[#f5d800] rounded p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-widest mb-4">Envoyer un défi</p>
+
+      <%= form_with url: duels_path, method: :post, local: true do |f| %>
+        <div class="grid grid-cols-3 gap-4">
+
+          <%# Sélection de l'adversaire %>
+          <div>
+            <label class="text-xs text-gray-600 uppercase tracking-widest block mb-1">Adversaire</label>
+            <% if @available_opponents.any? %>
+              <%= f.select :away_user_id,
+                  @available_opponents.map { |u| [u.display_name.upcase, u.id] },
+                  { prompt: "Choisir un joueur" },
+                  class: "w-full bg-[#0b0e1a] border border-gray-700 rounded px-3 py-2 text-white text-sm focus:border-[#f5d800] outline-none" %>
+            <% else %>
+              <p class="text-gray-600 text-sm italic py-2">Aucun adversaire disponible.</p>
+            <% end %>
+          </div>
+
+          <%# Budget du duel %>
+          <div>
+            <label class="text-xs text-gray-600 uppercase tracking-widest block mb-1">Budget (¢)</label>
+            <%= f.number_field :budget, value: 500, min: 100, max: 1000, step: 50,
+                class: "w-full bg-[#0b0e1a] border border-gray-700 rounded px-3 py-2 text-white text-sm focus:border-[#f5d800] outline-none" %>
+          </div>
+
+          <%# Bouton envoyer %>
+          <div class="flex items-end">
+            <%= f.submit "Envoyer le défi →",
+                class: "w-full bg-[#f5d800] text-black font-bold py-2.5 rounded text-sm uppercase hover:bg-yellow-300 transition-colors cursor-pointer" %>
+          </div>
+
+        </div>
+      <% end %>
+    </div>
+
+    <%# ======================================================== %>
+    <%# INVITATIONS REÇUES %>
+    <%# ======================================================== %>
+    <% if @pending_received.any? %>
+      <div class="mb-5">
+        <p class="text-xs text-gray-500 uppercase tracking-widest mb-3">
+          Invitations reçues · <%= @pending_received.count %>
+        </p>
+        <div class="bg-[#111627] border border-[#1c2128] rounded overflow-hidden">
+          <% @pending_received.each do |duel| %>
+            <div class="flex items-center gap-4 px-5 py-4 border-b border-[#1c2128] last:border-0">
+
+              <%# Avatar de l'expéditeur %>
+              <div class="w-10 h-10 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-[#f5d800] font-bold text-sm flex-shrink-0">
+                <%= duel.home_user.initials %>
+              </div>
+
+              <div class="flex-1">
+                <p class="text-white font-bold">
+                  <%= duel.home_user.display_name.upcase %>
+                </p>
+                <p class="text-gray-500 text-xs">
+                  Budget : <%= duel.budget %> ¢ · envoyé le <%= duel.created_at.strftime("%d/%m") %>
+                </p>
+              </div>
+
+              <%# Boutons Accepter / Refuser %>
+              <div class="flex gap-2">
+                <%= button_to "Accepter", accept_duel_path(duel),
+                    method: :patch,
+                    class: "bg-[#f5d800] text-black font-bold px-4 py-2 rounded text-xs uppercase hover:bg-yellow-300 transition-colors" %>
+                <%= button_to "Refuser", decline_duel_path(duel),
+                    method: :patch,
+                    class: "bg-[#0b0e1a] border border-gray-700 text-gray-400 font-bold px-4 py-2 rounded text-xs uppercase hover:border-white hover:text-white transition-colors" %>
+              </div>
+
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ======================================================== %>
+    <%# DUELS ACTIFS (DRAFT OU MATCH) %>
+    <%# ======================================================== %>
+    <% if @active_duels.any? %>
+      <div class="mb-5">
+        <p class="text-xs text-gray-500 uppercase tracking-widest mb-3">
+          En cours · <%= @active_duels.count %>
+        </p>
+        <div class="bg-[#111627] border border-[#1c2128] rounded overflow-hidden">
+          <% @active_duels.each do |duel| %>
+            <% opponent = duel.home_user == current_user ? duel.away_user : duel.home_user %>
+
+            <%= link_to duel_path(duel),
+                class: "flex items-center gap-4 px-5 py-4 border-b border-[#1c2128] last:border-0 hover:bg-[#0b0e1a] transition-colors" do %>
+
+              <div class="w-10 h-10 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-[#f5d800] font-bold text-sm flex-shrink-0">
+                <%= opponent.initials %>
+              </div>
+
+              <div class="flex-1">
+                <p class="text-white font-bold">
+                  VS <%= opponent.display_name.upcase %>
+                </p>
+                <p class="text-gray-500 text-xs">
+                  Budget : <%= duel.budget %> ¢
+                  <% if duel.draft? %>
+                    · Round <%= duel.current_round || 1 %>
+                  <% end %>
+                </p>
+              </div>
+
+              <%# Badge statut %>
+              <span class="text-xs font-bold border rounded px-2.5 py-1 uppercase
+                           <%= duel.draft? ? 'text-pink-400 border-pink-400' : 'text-green-400 border-green-400' %>">
+                <%= duel.draft? ? "● DRAFT" : "● MATCH" %>
+              </span>
+
+              <span class="text-gray-500">›</span>
+
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ======================================================== %>
+    <%# DÉFIS ENVOYÉS EN ATTENTE DE RÉPONSE %>
+    <%# ======================================================== %>
+    <% if @pending_sent.any? %>
+      <div class="mb-5">
+        <p class="text-xs text-gray-500 uppercase tracking-widest mb-3">
+          Défis envoyés · <%= @pending_sent.count %>
+        </p>
+        <div class="bg-[#111627] border border-[#1c2128] rounded overflow-hidden">
+          <% @pending_sent.each do |duel| %>
+            <div class="flex items-center gap-4 px-5 py-4 border-b border-[#1c2128] last:border-0 opacity-75">
+
+              <div class="w-10 h-10 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-gray-500 font-bold text-sm flex-shrink-0">
+                <%= duel.away_user.initials %>
+              </div>
+
+              <div class="flex-1">
+                <p class="text-white font-bold">
+                  VS <%= duel.away_user.display_name.upcase %>
+                </p>
+                <p class="text-gray-500 text-xs">
+                  Budget : <%= duel.budget %> ¢ · envoyé le <%= duel.created_at.strftime("%d/%m") %>
+                </p>
+              </div>
+
+              <span class="text-xs text-gray-600 border border-gray-700 rounded px-2.5 py-1 uppercase">
+                En attente
+              </span>
+
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ======================================================== %>
+    <%# HISTORIQUE %>
+    <%# ======================================================== %>
+    <% if @history.any? %>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-widest mb-3">Historique</p>
+        <div class="bg-[#111627] border border-[#1c2128] rounded overflow-hidden">
+          <% @history.each do |duel| %>
+            <% opponent = duel.home_user == current_user ? duel.away_user : duel.home_user %>
+            <% won = duel.match&.winner == current_user %>
+
+            <%= link_to duel_path(duel),
+                class: "flex items-center gap-4 px-5 py-3.5 border-b border-[#1c2128] last:border-0 hover:bg-[#0b0e1a] transition-colors opacity-75 hover:opacity-100" do %>
+
+              <div class="w-9 h-9 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-gray-600 font-bold text-xs flex-shrink-0">
+                <%= opponent.initials %>
+              </div>
+
+              <div class="flex-1">
+                <p class="text-gray-300 font-bold text-sm">
+                  VS <%= opponent.display_name.upcase %>
+                </p>
+                <p class="text-gray-600 text-xs">
+                  <%= duel.updated_at.strftime("%d/%m/%Y") %>
+                  <% if duel.match %>
+                    · <%= duel.match.home_score %> — <%= duel.match.away_score %>
+                  <% end %>
+                </p>
+              </div>
+
+              <%# Résultat final %>
+              <% if duel.finished? %>
+                <span class="text-xs font-bold <%= won ? 'text-green-400' : 'text-red-400' %>">
+                  <%= won ? "VICTOIRE" : "DÉFAITE" %>
+                </span>
+              <% elsif duel.declined? %>
+                <span class="text-xs text-gray-600">REFUSÉ</span>
+              <% end %>
+
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# État vide si aucun duel %>
+    <% if @pending_received.empty? && @active_duels.empty? && @pending_sent.empty? && @history.empty? %>
+      <div class="bg-[#111627] border border-[#1c2128] rounded p-12 text-center">
+        <p class="text-gray-600 text-sm mb-4">Aucun duel pour l'instant.</p>
+        <p class="text-gray-600 text-xs">Clique sur "Nouveau défi" pour lancer une partie.</p>
+      </div>
+    <% end %>
+
+  </div><%# fin .page-wrapper %>
+
+</div>

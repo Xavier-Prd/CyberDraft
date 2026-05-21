@@ -1,0 +1,211 @@
+<%# ============================================================ %>
+<%# PAGE RÉSULTATS — Détail d'un match avec stats individuelles %>
+<%# ============================================================ %>
+
+<%# Fil d'Ariane %>
+<div class="max-w-5xl mx-auto px-8 pt-6">
+  <div class="flex items-center gap-2 text-xs text-gray-500 mb-6">
+    <%= link_to "Calendrier", matches_path, class: "hover:text-white transition-colors" %>
+    <span>›</span>
+    <span class="text-white">Match · <%= @home_user.display_name.upcase %> vs <%= @away_user.display_name.upcase %></span>
+  </div>
+</div>
+
+<div class="px-8 pb-8 max-w-5xl mx-auto">
+
+  <%# ======================================================== %>
+  <%# BANDEAU RÉSULTAT — Vainqueur | Score | Défaite %>
+  <%# ======================================================== %>
+  <div class="grid grid-cols-3 gap-4 mb-6">
+
+    <%# Vainqueur (côté gauche) %>
+    <% home_won = @match.winner == @home_user %>
+    <div class="bg-[#111627] border <%= home_won ? 'border-[#f5d800]' : 'border-[#1c2128]' %> rounded p-5">
+      <p class="text-xs uppercase tracking-widest mb-2 <%= home_won ? 'text-[#f5d800]' : 'text-gray-600' %>">
+        <%= home_won ? "VAINQUEUR" : "DÉFAITE" %>
+      </p>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center font-bold text-sm
+                    <%= home_won ? 'border-[#f5d800] text-[#f5d800]' : 'text-gray-500' %>">
+          <%= @home_user.initials %>
+        </div>
+        <div>
+          <p class="text-white font-bold uppercase"><%= @home_user.display_name %></p>
+          <p class="text-gray-600 text-xs">
+            <%# Bilan du joueur — on récupère juste ses victoires %>
+            <%= @home_user.won_matches.count %>V au total
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <%# Score central %>
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-5 text-center">
+      <p class="text-xs text-gray-600 uppercase tracking-widest mb-2">
+        <%= @match.played_at&.strftime("%d %B %Y") || "Match simulé" %>
+      </p>
+      <p class="text-4xl font-bold text-white"><%= @match.home_score %> — <%= @match.away_score %></p>
+
+      <%# Scores par quart-temps si disponibles %>
+      <% if @match.q1_home %>
+        <div class="flex justify-center gap-3 mt-3">
+          <% [
+            [@match.q1_home, @match.q1_away],
+            [@match.q2_home, @match.q2_away],
+            [@match.q3_home, @match.q3_away],
+            [@match.q4_home, @match.q4_away]
+          ].each_with_index do |(h, a), qi| %>
+            <div class="text-center">
+              <p class="text-gray-600 text-xs">Q<%= qi + 1 %></p>
+              <p class="text-xs font-bold text-white"><%= h %> — <%= a %></p>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Équipe extérieure (côté droit) %>
+    <% away_won = @match.winner == @away_user %>
+    <div class="bg-[#111627] border <%= away_won ? 'border-[#f5d800]' : 'border-[#1c2128]' %> rounded p-5">
+      <p class="text-xs uppercase tracking-widest mb-2 <%= away_won ? 'text-[#f5d800]' : 'text-gray-600' %>">
+        <%= away_won ? "VAINQUEUR" : "DÉFAITE" %>
+      </p>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center font-bold text-sm
+                    <%= away_won ? 'border-[#f5d800] text-[#f5d800]' : 'text-gray-500' %>">
+          <%= @away_user.initials %>
+        </div>
+        <div>
+          <p class="text-white font-bold uppercase"><%= @away_user.display_name %></p>
+          <p class="text-gray-600 text-xs"><%= @away_user.won_matches.count %>V au total</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <%# ======================================================== %>
+  <%# STATISTIQUES INDIVIDUELLES — une table par équipe %>
+  <%# ======================================================== %>
+  <div class="grid grid-cols-2 gap-4 mb-4">
+
+    <%# Table home %>
+    <div class="bg-[#111627] border border-[#1c2128] rounded overflow-hidden">
+      <div class="px-5 py-3 border-b border-[#1c2128]">
+        <p class="text-xs text-gray-500 uppercase tracking-widest">
+          <%= @home_user.display_name.upcase %>
+        </p>
+      </div>
+
+      <%# En-têtes %>
+      <div class="grid grid-cols-12 px-5 py-2 text-xs text-gray-600 uppercase tracking-widest border-b border-[#1c2128]">
+        <span class="col-span-5">Joueur</span>
+        <span class="col-span-2 text-center">PTS</span>
+        <span class="col-span-2 text-center">AST</span>
+        <span class="col-span-2 text-center">REB</span>
+      </div>
+
+      <% if @home_stats.any? %>
+        <% @home_stats.each do |stat| %>
+          <div class="grid grid-cols-12 px-5 py-2.5 items-center border-b border-[#1c2128] last:border-0">
+            <div class="col-span-5 flex items-center gap-2">
+              <div class="w-7 h-7 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-[#f5d800] font-bold text-xs flex-shrink-0">
+                <%= stat.character.name.gsub(/[^a-zA-Z0-9]/, "").first(2).upcase %>
+              </div>
+              <div>
+                <p class="text-white text-xs font-bold"><%= stat.character.name %></p>
+                <p class="text-gray-600 text-xs"><%= stat.position || stat.character.recommanded_position %></p>
+              </div>
+            </div>
+            <div class="col-span-2 text-center"><span class="text-white font-bold text-sm"><%= stat.points || 0 %></span></div>
+            <div class="col-span-2 text-center"><span class="text-gray-400 text-sm"><%= stat.assists || 0 %></span></div>
+            <div class="col-span-2 text-center"><span class="text-gray-400 text-sm"><%= stat.rebounds || 0 %></span></div>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="px-5 py-4 text-gray-600 text-xs italic">Aucune statistique.</p>
+      <% end %>
+    </div>
+
+    <%# Table away %>
+    <div class="bg-[#111627] border border-[#1c2128] rounded overflow-hidden">
+      <div class="px-5 py-3 border-b border-[#1c2128]">
+        <p class="text-xs text-gray-500 uppercase tracking-widest">
+          <%= @away_user.display_name.upcase %>
+        </p>
+      </div>
+
+      <div class="grid grid-cols-12 px-5 py-2 text-xs text-gray-600 uppercase tracking-widest border-b border-[#1c2128]">
+        <span class="col-span-5">Joueur</span>
+        <span class="col-span-2 text-center">PTS</span>
+        <span class="col-span-2 text-center">AST</span>
+        <span class="col-span-2 text-center">REB</span>
+      </div>
+
+      <% if @away_stats.any? %>
+        <% @away_stats.each do |stat| %>
+          <div class="grid grid-cols-12 px-5 py-2.5 items-center border-b border-[#1c2128] last:border-0">
+            <div class="col-span-5 flex items-center gap-2">
+              <div class="w-7 h-7 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-[#f5d800] font-bold text-xs flex-shrink-0">
+                <%= stat.character.name.gsub(/[^a-zA-Z0-9]/, "").first(2).upcase %>
+              </div>
+              <div>
+                <p class="text-white text-xs font-bold"><%= stat.character.name %></p>
+                <p class="text-gray-600 text-xs"><%= stat.position || stat.character.recommanded_position %></p>
+              </div>
+            </div>
+            <div class="col-span-2 text-center"><span class="text-white font-bold text-sm"><%= stat.points || 0 %></span></div>
+            <div class="col-span-2 text-center"><span class="text-gray-400 text-sm"><%= stat.assists || 0 %></span></div>
+            <div class="col-span-2 text-center"><span class="text-gray-400 text-sm"><%= stat.rebounds || 0 %></span></div>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="px-5 py-4 text-gray-600 text-xs italic">Aucune statistique.</p>
+      <% end %>
+    </div>
+
+  </div>
+
+  <%# ======================================================== %>
+  <%# MVP DU MATCH %>
+  <%# ======================================================== %>
+  <% if @mvp_stat %>
+    <div class="bg-[#111627] border border-[#f5d800] rounded p-5 flex items-center gap-5">
+      <div>
+        <p class="text-[#f5d800] text-xs font-bold uppercase tracking-widest mb-1">★ MVP DU MATCH</p>
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded bg-[#0b0e1a] border border-[#f5d800] flex items-center justify-center text-[#f5d800] font-bold text-sm">
+            <%= @mvp_stat.character.name.gsub(/[^a-zA-Z0-9]/, "").first(2).upcase %>
+          </div>
+          <div>
+            <p class="text-white font-bold text-lg"><%= @mvp_stat.character.name %></p>
+            <p class="text-gray-400 text-sm"><%= @mvp_stat.character.universe %></p>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-8 ml-8">
+        <div class="text-center">
+          <p class="text-white font-bold text-2xl"><%= @mvp_stat.points || 0 %></p>
+          <p class="text-gray-600 text-xs uppercase tracking-widest">pts</p>
+        </div>
+        <div class="text-center">
+          <p class="text-white font-bold text-2xl"><%= @mvp_stat.assists || 0 %></p>
+          <p class="text-gray-600 text-xs uppercase tracking-widest">ast</p>
+        </div>
+        <div class="text-center">
+          <p class="text-white font-bold text-2xl"><%= @mvp_stat.rebounds || 0 %></p>
+          <p class="text-gray-600 text-xs uppercase tracking-widest">reb</p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Narrative si disponible %>
+  <% if @match.narrative.present? %>
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-5 mt-4">
+      <p class="text-xs text-gray-500 uppercase tracking-widest mb-3">Récit du match</p>
+      <p class="text-gray-300 text-sm leading-relaxed"><%= @match.narrative %></p>
+    </div>
+  <% end %>
+
+</div>

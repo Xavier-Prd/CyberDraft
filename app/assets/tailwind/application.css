@@ -5,3 +5,8 @@
 @plugin "./daisyui-theme.mjs"{
   /* custom theme here */
 }
+
+/* Police Share Tech Mono sur tout le site */
+body {
+  font-family: 'Share Tech Mono', monospace;
+}

@@ -1,0 +1,145 @@
+<%# ============================================================ %>
+<%# PAGE PROFIL — Stats globales, personnages emblématiques, rivaux %>
+<%# ============================================================ %>
+
+<div class="px-8 py-6 max-w-5xl">
+
+  <%# ======================================================== %>
+  <%# EN-TÊTE : Avatar + nom + stats rapides %>
+  <%# ======================================================== %>
+  <div class="bg-[#111627] border border-[#1c2128] rounded p-6 mb-5 flex items-center gap-6">
+
+    <%# Grand avatar %>
+    <div class="w-16 h-16 rounded bg-[#f5d800] flex items-center justify-center text-black font-bold text-2xl flex-shrink-0">
+      <%= current_user.initials %>
+    </div>
+
+    <div class="flex-1">
+      <h1 class="text-2xl font-bold text-white uppercase tracking-widest">
+        <%= current_user.display_name %>
+      </h1>
+      <p class="text-gray-500 text-sm mt-0.5"><%= current_user.email %></p>
+      <p class="text-gray-600 text-xs mt-1">membre depuis le <%= current_user.created_at.strftime("%d/%m/%Y") %></p>
+    </div>
+
+    <%# Win rate affiché en grand à droite %>
+    <div class="text-right">
+      <p class="text-[#f5d800] text-4xl font-bold"><%= @win_rate %>%</p>
+      <p class="text-gray-500 text-xs uppercase tracking-widest">ratio victoires</p>
+    </div>
+
+  </div>
+
+  <%# ======================================================== %>
+  <%# 4 CARTES STATS %>
+  <%# ======================================================== %>
+  <div class="grid grid-cols-4 gap-3 mb-5">
+
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-4">
+      <p class="text-xs text-gray-600 uppercase tracking-widest mb-2">Matchs joués</p>
+      <p class="text-white text-2xl font-bold"><%= @total_played %></p>
+      <p class="text-gray-600 text-xs mt-1"><%= @total_duels %> duels terminés</p>
+    </div>
+
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-4">
+      <p class="text-xs text-gray-600 uppercase tracking-widest mb-2">Victoires</p>
+      <p class="text-green-400 text-2xl font-bold"><%= @wins %></p>
+      <p class="text-gray-600 text-xs mt-1"><%= @losses %> défaites</p>
+    </div>
+
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-4">
+      <p class="text-xs text-gray-600 uppercase tracking-widest mb-2">Drafts gagnées</p>
+      <p class="text-white text-2xl font-bold"><%= @total_drafts %></p>
+      <p class="text-gray-600 text-xs mt-1">taux <%= @draft_success_rate %>%</p>
+    </div>
+
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-4">
+      <p class="text-xs text-gray-600 uppercase tracking-widest mb-2">Bilan</p>
+      <p class="text-white text-2xl font-bold"><%= @wins %>–<%= @losses %></p>
+      <p class="text-gray-600 text-xs mt-1">victoires – défaites</p>
+    </div>
+
+  </div>
+
+  <%# ======================================================== %>
+  <%# LIGNE DU BAS : Personnages emblématiques + Rivaux %>
+  <%# ======================================================== %>
+  <div class="grid grid-cols-2 gap-4 mb-4">
+
+    <%# Personnages emblématiques (les plus draftés) %>
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-widest mb-4">Personnages emblématiques</p>
+
+      <% if @top_characters.any? %>
+        <% @top_characters.each_with_index do |entry, i| %>
+          <% character = entry[:character] %>
+          <%= link_to character_path(character),
+              class: "flex items-center gap-3 py-2.5 border-b border-[#1c2128] last:border-0 hover:opacity-75 transition-opacity" do %>
+
+            <div class="w-9 h-9 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-[#f5d800] font-bold text-xs flex-shrink-0">
+              <%= character.name.gsub(/[^a-zA-Z0-9]/, "").first(2).upcase %>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <p class="text-white text-sm font-bold truncate"><%= character.name %></p>
+              <p class="text-gray-500 text-xs truncate"><%= character.universe %></p>
+            </div>
+
+            <div class="text-right">
+              <p class="text-[#f5d800] font-bold text-sm">×<%= entry[:count] %></p>
+              <p class="text-gray-600 text-xs">drafts</p>
+            </div>
+
+          <% end %>
+        <% end %>
+      <% else %>
+        <p class="text-gray-600 text-sm italic text-center py-4">Aucun personnage drafté.</p>
+        <%= link_to "Explorer les personnages →", characters_path,
+            class: "block text-center text-xs text-gray-600 hover:text-white mt-2" %>
+      <% end %>
+    </div>
+
+    <%# Rivaux %>
+    <div class="bg-[#111627] border border-[#1c2128] rounded p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-widest mb-4">Rivaux</p>
+
+      <% if @rivals.any? %>
+        <% @rivals.each do |rival| %>
+          <div class="flex items-center gap-3 py-2.5 border-b border-[#1c2128] last:border-0">
+
+            <div class="w-9 h-9 rounded bg-[#0b0e1a] border border-gray-700 flex items-center justify-center text-gray-500 font-bold text-xs flex-shrink-0">
+              <%= rival[:user].initials %>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <p class="text-white text-sm font-bold truncate">
+                <%= rival[:user].display_name.upcase %>
+              </p>
+              <p class="text-gray-500 text-xs"><%= rival[:total] %> duel<%= rival[:total] > 1 ? "s" : "" %> joués</p>
+            </div>
+
+            <%# Bilan face à ce rival %>
+            <div class="text-right">
+              <span class="text-green-400 font-bold text-sm"><%= rival[:wins] %></span>
+              <span class="text-gray-600"> — </span>
+              <span class="text-red-400 font-bold text-sm"><%= rival[:losses] %></span>
+            </div>
+
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-gray-600 text-sm italic text-center py-4">Aucun rival pour l'instant.</p>
+      <% end %>
+    </div>
+
+  </div>
+
+  <%# Actions du compte %>
+  <div class="flex gap-3">
+    <%= link_to "Modifier mon profil", edit_user_registration_path,
+        class: "border border-gray-700 text-gray-400 text-sm font-bold px-5 py-2.5 rounded uppercase hover:border-white hover:text-white transition-colors" %>
+    <%= link_to "Voir le classement →", leaderboard_path,
+        class: "border border-[#f5d800] text-[#f5d800] text-sm font-bold px-5 py-2.5 rounded uppercase hover:bg-[#f5d800] hover:text-black transition-colors" %>
+  </div>
+
+</div>
